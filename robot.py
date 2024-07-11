@@ -20,6 +20,7 @@ from base.func_xinghuo_web import XinghuoWeb
 from configuration import Config
 from constants import ChatType
 from job_mgmt import Job
+from push import push
 
 __version__ = "39.0.10.1"
 
@@ -167,7 +168,13 @@ class Robot(Job):
                     self.config.reload()
                     self.LOG.info("已更新")
             else:
-                self.toChitchat(msg)  # 闲聊
+                contact_name = self.allContacts.get(msg.sender, msg.sender)
+                self.LOG.info(f"Received message from {contact_name}: {msg.content}")
+                result = push(contact_name, msg.content)
+                if result:
+                    self.LOG.info(f"Push message successful. Sender: {msg.sender}, Content: {msg.content}")
+                else:
+                    self.LOG.error(f"Push message failed. Sender: {msg.sender}, Content: {msg.content}")
 
     def onMsg(self, msg: WxMsg) -> int:
         try:
@@ -216,10 +223,10 @@ class Robot(Job):
         # {msg}{ats} 表示要发送的消息内容后面紧跟@，例如 北京天气情况为：xxx @张三
         if ats == "":
             self.LOG.info(f"To {receiver}: {msg}")
-            self.wcf.send_text(f"{msg}", receiver, at_list)
+            #self.wcf.send_text(f"{msg}", receiver, at_list)
         else:
             self.LOG.info(f"To {receiver}: {ats}\r{msg}")
-            self.wcf.send_text(f"{ats}\n\n{msg}", receiver, at_list)
+            #self.wcf.send_text(f"{ats}\n\n{msg}", receiver, at_list)
 
     def getAllContacts(self) -> dict:
         """
